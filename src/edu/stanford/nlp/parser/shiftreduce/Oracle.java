@@ -35,7 +35,9 @@ class Oracle {
 
   Set<String> rootStates;
 
-  Oracle(List<Tree> binarizedTrees, boolean compoundUnaries, Set<String> rootStates) {
+  Set<String> punctuationTags;
+
+  Oracle(List<Tree> binarizedTrees, boolean compoundUnaries, Set<String> rootStates, Set<String> punctuationTags) {
     this.binarizedTrees = binarizedTrees;
 
     parentMaps = Generics.newArrayList(binarizedTrees.size());
@@ -46,6 +48,7 @@ class Oracle {
     }
 
     this.compoundUnaries = compoundUnaries;
+    this.punctuationTags = punctuationTags;
   }
 
   static IdentityHashMap<Tree, Tree> buildParentMap(Tree tree) {
@@ -129,7 +132,7 @@ class Oracle {
 
     Tree S0 = state.stack.peek();
     Tree enclosingS0 = getEnclosingTree(S0, parents, leaves);
-    OracleTransition result = getUnaryTransition(S0, enclosingS0, parents, compoundUnaries);
+    OracleTransition result = getUnaryTransition(S0, enclosingS0, parents, compoundUnaries, punctuationTags);
     if (result != null) {
       return result;
     }
@@ -202,7 +205,7 @@ class Oracle {
             (ShiftReduceUtils.rightIndex(subtree) == ShiftReduceUtils.rightIndex(goldSubtree)));
   }
 
-  static OracleTransition getUnaryTransition(Tree S0, Tree enclosingS0, Map<Tree, Tree> parents, boolean compoundUnaries) {
+  static OracleTransition getUnaryTransition(Tree S0, Tree enclosingS0, Map<Tree, Tree> parents, boolean compoundUnaries, Set<String> punctuationTags) {
     if (!spansEqual(S0, enclosingS0)) {
       return null;
     }
@@ -255,9 +258,9 @@ class Oracle {
         parent = parents.get(parent);
       }
       Collections.reverse(labels);
-      return new OracleTransition(new CompoundUnaryTransition(labels, false), false, false, false);
+      return new OracleTransition(new CompoundUnaryTransition(labels, false, punctuationTags), false, false, false);
     } else {
-      return new OracleTransition(new UnaryTransition(parent.value(), false), false, false, false);
+      return new OracleTransition(new UnaryTransition(parent.value(), false, punctuationTags), false, false, false);
     }
   }
 }
